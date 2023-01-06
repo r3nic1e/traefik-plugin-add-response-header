@@ -7,9 +7,8 @@ import (
 )
 
 type Config struct {
-	From      string `json:"from,omitempty"`
-	To        string `json:"to,omitempty"`
-	Overwrite bool   `json:"overwrite,omitempty"`
+	From string `json:"from,omitempty"`
+	To   string `json:"to,omitempty"`
 }
 
 func CreateConfig() *Config {
@@ -23,18 +22,12 @@ type plugin struct {
 }
 
 func (p *plugin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	p.next.ServeHTTP(w, req)
-
 	src := req.Header.Get(p.config.From)
-	if src == "" {
-		return
+	if src != "" {
+		w.Header().Set(p.config.To, src)
 	}
 
-	if !p.config.Overwrite && w.Header().Get(p.config.To) != "" {
-		return
-	}
-
-	w.Header().Set(p.config.To, src)
+	p.next.ServeHTTP(w, req)
 }
 
 func New(_ context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {

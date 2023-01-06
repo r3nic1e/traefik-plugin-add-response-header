@@ -11,7 +11,7 @@ experimental:
   plugins:
     add-response-header:
       moduleName: github.com/r3nic1e/traefik-plugin-add-response-header
-      version: v0.1.0
+      version: v0.2.0
 ```
 
 Configure middleware:
@@ -22,8 +22,7 @@ metadata:
   name: add-response-header
 spec:
   plugin:
-    copy-header-value:
+    add-response-header:
       from: "X-B3-TraceId"
       to: "X-B3-TraceId"
-      overwrite: false
 ```

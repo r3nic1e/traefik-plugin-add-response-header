@@ -54,45 +54,6 @@ func (s *Suite) TestCorrectCopy() {
 	s.Require().Equal(data, resp.Header().Get(cfg.To))
 }
 
-func (s *Suite) TestOverwriteFalse() {
-	cfg := &Config{
-		From:      "blabla",
-		To:        "overwrite",
-		Overwrite: false,
-	}
-	data := "123bla321"
-
-	h, err := New(context.Background(), dummyHandler{}, cfg, "")
-	s.Require().NoError(err)
-
-	resp := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", "/", nil)
-	req.Header.Set(cfg.From, data)
-	h.ServeHTTP(resp, req)
-
-	s.Require().NotEmpty(resp.Header().Get(cfg.To))
-	s.Require().NotEqual(data, resp.Header().Get(cfg.To))
-}
-
-func (s *Suite) TestOverwriteTrue() {
-	cfg := &Config{
-		From:      "blabla",
-		To:        "overwrite",
-		Overwrite: true,
-	}
-	data := "123bla321"
-
-	h, err := New(context.Background(), dummyHandler{}, cfg, "")
-	s.Require().NoError(err)
-
-	resp := httptest.NewRecorder()
-	req := httptest.NewRequest("GET", "/", nil)
-	req.Header.Set(cfg.From, data)
-	h.ServeHTTP(resp, req)
-
-	s.Require().Equal(data, resp.Header().Get(cfg.To))
-}
-
 func TestSuite(t *testing.T) {
 	suite.Run(t, &Suite{})
 }
