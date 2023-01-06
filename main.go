@@ -22,12 +22,12 @@ type plugin struct {
 }
 
 func (p *plugin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	src := req.Header.Get(p.config.From)
-	if src != "" {
-		w.Header().Set(p.config.To, src)
-	}
+	w.Header().Add("Trailer", p.config.To)
 
 	p.next.ServeHTTP(w, req)
+
+	src := req.Header.Get(p.config.From)
+	w.Header().Set(p.config.To, src)
 }
 
 func New(_ context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
