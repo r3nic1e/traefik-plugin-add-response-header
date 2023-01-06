@@ -10,7 +10,7 @@ Add plugin:
 experimental:
   plugins:
     add-response-header:
-      moduleName: github.com/argyle-engineering/copy-header-value-traefik-plugin
+      moduleName: github.com/r3nic1e/traefik-plugin-add-response-header
       version: v0.1.0
 ```
 

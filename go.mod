@@ -1,4 +1,4 @@
-module github.com/argyle-engineering/copy-header-value-traefik-plugin
+module github.com/r3nic1e/traefik-plugin-add-response-header
 
 go 1.19
 
