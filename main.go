@@ -23,14 +23,22 @@ type plugin struct {
 }
 
 func (p *plugin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	if w.Header().Get("Trailer") == "" {
+		w.Header().Set("Trailer", p.config.To)
+	} else {
+		w.Header().Add("Trailer", p.config.To)
+	}
+
+	os.Stdout.WriteString(fmt.Sprintf("ServeHTTP: w headers before - %+v", w.Header()))
+
 	p.next.ServeHTTP(w, req)
 
 	src := req.Header.Get(p.config.From)
 	os.Stdout.WriteString(fmt.Sprintf("ServeHTTP: src header - %+v", src))
 
-	if src != "" {
-		w.Header().Set(http.TrailerPrefix+p.config.To, src)
-	}
+	w.Header().Set(p.config.To, src)
+
+	os.Stdout.WriteString(fmt.Sprintf("ServeHTTP: w headers after - %+v", w.Header()))
 }
 
 func New(_ context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
