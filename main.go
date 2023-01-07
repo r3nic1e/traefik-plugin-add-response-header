@@ -3,7 +3,9 @@ package traefik_plugin_add_response_header
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
+	"net/http/httptest"
 	"os"
 )
 
@@ -23,22 +25,20 @@ type plugin struct {
 }
 
 func (p *plugin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	if w.Header().Get("Trailer") == "" {
-		w.Header().Set("Trailer", p.config.To)
-	} else {
-		w.Header().Add("Trailer", p.config.To)
-	}
+	resp := httptest.NewRecorder()
 
 	os.Stdout.WriteString(fmt.Sprintf("ServeHTTP: w headers before - %+v", w.Header()))
 
-	p.next.ServeHTTP(w, req)
+	p.next.ServeHTTP(resp, req)
 
-	src := req.Header.Get(p.config.From)
-	os.Stdout.WriteString(fmt.Sprintf("ServeHTTP: src header - %+v", src))
+	for k := range resp.Header() {
+		w.Header().Set(k, resp.Header().Get(k))
+	}
+	w.Header().Set(p.config.To, req.Header.Get(p.config.From))
 
-	w.Header().Set(p.config.To, src)
+	io.Copy(w, resp.Body)
 
-	os.Stdout.WriteString(fmt.Sprintf("ServeHTTP: w headers after - %+v", w.Header()))
+	w.WriteHeader(resp.Code)
 }
 
 func New(_ context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
