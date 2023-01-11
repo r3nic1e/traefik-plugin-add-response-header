@@ -1,12 +1,21 @@
 package traefik_plugin_add_response_header
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"regexp"
+)
+
+var (
+	_ interface {
+		http.ResponseWriter
+		http.Hijacker
+	} = wrappedResponseWriter{}
 )
 
 type Config struct {
@@ -52,6 +61,15 @@ func (w wrappedResponseWriter) WriteHeader(code int) {
 func (w wrappedResponseWriter) Flush() {
 	w.w.WriteHeader(w.code)
 	io.Copy(w.w, w.buf)
+}
+
+func (w wrappedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	hijacker, ok := w.w.(http.Hijacker)
+	if !ok {
+		return nil, nil, fmt.Errorf("%T is not an http.Hijacker", w.w)
+	}
+
+	return hijacker.Hijack()
 }
 
 func (p *plugin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
