@@ -15,7 +15,7 @@ var (
 	_ interface {
 		http.ResponseWriter
 		http.Hijacker
-	} = wrappedResponseWriter{}
+	} = &wrappedResponseWriter{}
 )
 
 type Config struct {
@@ -46,24 +46,24 @@ type wrappedResponseWriter struct {
 	code int
 }
 
-func (w wrappedResponseWriter) Header() http.Header {
+func (w *wrappedResponseWriter) Header() http.Header {
 	return w.w.Header()
 }
 
-func (w wrappedResponseWriter) Write(b []byte) (int, error) {
+func (w *wrappedResponseWriter) Write(b []byte) (int, error) {
 	return w.buf.Write(b)
 }
 
-func (w wrappedResponseWriter) WriteHeader(code int) {
+func (w *wrappedResponseWriter) WriteHeader(code int) {
 	w.code = code
 }
 
-func (w wrappedResponseWriter) Flush() {
+func (w *wrappedResponseWriter) Flush() {
 	w.w.WriteHeader(w.code)
 	io.Copy(w.w, w.buf)
 }
 
-func (w wrappedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+func (w *wrappedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	hijacker, ok := w.w.(http.Hijacker)
 	if !ok {
 		return nil, nil, fmt.Errorf("%T is not an http.Hijacker", w.w)
@@ -73,7 +73,7 @@ func (w wrappedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 }
 
 func (p *plugin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	resp := wrappedResponseWriter{
+	resp := &wrappedResponseWriter{
 		w:    w,
 		buf:  &bytes.Buffer{},
 		code: 200,
